@@ -15,8 +15,8 @@ public class ContractModel {
     private MasterNodeSubsidy masterNodeSubsidy;
 
     private ContractModel() {
-        //init(6666665, "http://127.0.0.1:8545");
-        init(6666666, "http://127.0.0.1:8545");
+        //init(6666665, "http://47.107.89.150:8545");
+        init(6666666, "http://139.162.40.90:8545"); // for testnet
     }
 
     public static ContractModel getInstance() {
