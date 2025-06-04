@@ -1,5 +1,6 @@
 package com.anwang.ui;
 
+import com.anwang.contracts.MasterNodeSubsidy;
 import com.anwang.types.ContractModel;
 import com.anwang.types.MnData;
 import com.anwang.types.masternode.MasterNodeInfo;
@@ -10,12 +11,11 @@ import io.reactivex.disposables.Disposable;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
 import org.web3j.abi.datatypes.Event;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.Utf8String;
+import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.EthFilter;
 
 import javax.swing.*;
@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class MnPage extends JPanel {
     private final JTable table;
@@ -119,6 +120,10 @@ public class MnPage extends JPanel {
             }, new TypeReference<Utf8String>() {
             }));
 
+    Event MNSubsidy = new Event("MNSubsidy", Arrays.asList(
+            new TypeReference<DynamicArray<Uint256>>() {
+            }));
+
     BigInteger endHeight = BigInteger.valueOf(96364); //  2025/05/30 15:00:00
 
     boolean isOk = false;
@@ -188,6 +193,30 @@ public class MnPage extends JPanel {
         System.out.println("迁移主节点数量：" + redeemMap.size() + "，期间主节点数量：" + mnDataMap.size());
         calculate();
         tableModel.updateData();
+
+        if (eventSubscription != null && !eventSubscription.isDisposed()) {
+            eventSubscription.dispose();
+        }
+        ethFilter = new EthFilter(DefaultBlockParameter.valueOf(endHeight), DefaultBlockParameterName.LATEST, MasterNodeSubsidy.contractAddr).addOptionalTopics(
+                EventEncoder.encode(MNSubsidy));
+        eventSubscription = ContractModel.getInstance().getWeb3j().ethLogFlowable(ethFilter)
+                .subscribe(log -> {
+                    switch (CommonUtil.getEventName(log.getTopics().get(0))) {
+                        case "MNSubsidy":
+                            handleMNSubsidy(log.getTransactionHash(), log.getData());
+                            break;
+                        default:
+                            break;
+                    }
+                }, error -> {
+                    isOk = false;
+                    System.out.println(error.getMessage());
+                    scheduleReconnect();
+                });
+
+        if (!isOk) {
+            return;
+        }
     }
 
     private void scheduleReconnect() {
@@ -233,8 +262,7 @@ public class MnPage extends JPanel {
         redeemMap.put(addr, true);
     }
 
-    //long id = 69;
-    long id = 372;
+    long id = 69;
 
     Map<Address, MnData> mnDataMap = new HashMap<>();
 
@@ -242,8 +270,7 @@ public class MnPage extends JPanel {
         List<Type> noIndexed = FunctionReturnDecoder.decode(logData, MNRegisterEvent.getNonIndexedParameters());
         Address addr = (Address) noIndexed.get(0);
         Address creator = (Address) noIndexed.get(1);
-        BigInteger lockID = (BigInteger) noIndexed.get(4).getValue();
-        MnData data = new MnData(++id, addr, creator, lockID, height);
+        MnData data = new MnData(++id, addr, creator, height);
         if (!redeemMap.containsKey(addr)) { // new MasterNode
             data.type = BigInteger.ONE;
             data.startHeight = height;
@@ -283,6 +310,23 @@ public class MnPage extends JPanel {
             }
             data.enode = enode;
             mnDataMap.put(addr, data);
+        }
+    }
+
+    private void handleMNSubsidy(String txid, String logData) {
+        List<Type> noIndexed = FunctionReturnDecoder.decode(logData, MNSubsidy.getNonIndexedParameters());
+        List<BigInteger> mnIDs = ((DynamicArray<Uint256>) noIndexed.get(0)).getValue().stream().map(v -> v.getValue()).collect(Collectors.toList());
+        for (BigInteger mnID : mnIDs) {
+            for (int i = 0; i < dataList.size(); i++) {
+                MnData data = dataList.get(i);
+                if (data.id.longValue() == mnID.longValue()) {
+                    data.subsidyTxid = txid;
+                    data.state = 1;
+                    dataList.set(i, data);
+                    tableModel.fireTableDataChanged();
+                    break;
+                }
+            }
         }
     }
 
@@ -413,62 +457,52 @@ public class MnPage extends JPanel {
     }
 
     private void doSubsidy() {
+        List<MnData> needs = new ArrayList<>();
+        for (MnData data : dataList) {
+            if (data.rewardAmount.compareTo(BigInteger.ZERO) == 0 ||
+                    data.state == 1) {
+                continue;
+            }
+            needs.add(data);
+        }
+
         int i = 0;
-        for (; i < dataList.size() / 30; i++) {
+        int batchNum = 100;
+        for (; i < needs.size() / batchNum; i++) {
             List<BigInteger> mnIDs = new ArrayList<>();
             List<Address> creators = new ArrayList<>();
             List<BigInteger> amounts = new ArrayList<>();
-            List<BigInteger> lockDays = new ArrayList<>();
             BigInteger value = BigInteger.ZERO;
-            for (int k = 0; k < 30; k++) {
-                MnData data = dataList.get(i * 30 + k);
+            for (int k = 0; k < batchNum; k++) {
+                MnData data = needs.get(i * batchNum + k);
                 mnIDs.add(data.id);
                 creators.add(data.creator);
                 amounts.add(data.rewardAmount);
-                if (data.onlineDay.intValue() >= 30) {
-                    lockDays.add(BigInteger.ZERO);
-                } else {
-                    lockDays.add(BigInteger.valueOf(30 - data.onlineDay.intValue()));
-                }
                 value = value.add(data.rewardAmount);
             }
             try {
-                String txid = ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts, lockDays);
-                for (int k = 0; k < 30; k++) {
-                    MnData data = dataList.get(i * 30 + k);
-                    data.subsidyTxid = txid;
-                    dataList.set(i * 30 + k, data);
-                }
+                ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts);
             } catch (Exception e) {
                 e.printStackTrace();
+                return;
             }
         }
 
-        if (dataList.size() % 30 != 0) {
+        if (needs.size() % batchNum != 0) {
+            List<MnData> temps = needs.subList(i * batchNum, needs.size());
             List<BigInteger> mnIDs = new ArrayList<>();
             List<Address> creators = new ArrayList<>();
             List<BigInteger> amounts = new ArrayList<>();
-            List<BigInteger> lockDays = new ArrayList<>();
             BigInteger value = BigInteger.ZERO;
-            for (int k = 0; k < dataList.size() - i * 30; k++) {
-                MnData data = dataList.get(i * 30 + k);
+            for (int k = 0; k < temps.size(); k++) {
+                MnData data = temps.get(k);
                 mnIDs.add(data.id);
                 creators.add(data.creator);
                 amounts.add(data.rewardAmount);
-                if (data.onlineDay.intValue() >= 30) {
-                    lockDays.add(BigInteger.ZERO);
-                } else {
-                    lockDays.add(BigInteger.valueOf(30 - data.onlineDay.intValue()));
-                }
                 value = value.add(data.rewardAmount);
             }
             try {
-                String txid = ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts, lockDays);
-                for (int k = 0; k < 30; k++) {
-                    MnData data = dataList.get(i * 30 + k);
-                    data.subsidyTxid = txid;
-                    dataList.set(i * 30 + k, data);
-                }
+                ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -546,7 +580,7 @@ public class MnPage extends JPanel {
 
             ((AbstractDocument) field.getDocument()).setDocumentFilter(new NumericFilter());
             field.addActionListener(e -> {
-                int tempPage = Integer.valueOf(field.getText().trim());
+                int tempPage = Integer.parseInt(field.getText().trim());
                 if (tempPage < 1) {
                     tempPage = 1;
                 }
