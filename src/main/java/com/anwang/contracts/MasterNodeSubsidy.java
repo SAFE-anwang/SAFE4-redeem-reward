@@ -17,7 +17,8 @@ public class MasterNodeSubsidy {
     private final ContractUtil contractUtil;
 
     public MasterNodeSubsidy(Web3j web3j, long chainId) {
-        contractUtil = new ContractUtil(web3j, chainId, "0xD5047b82ACC65c30Eefe4C3cDb652C1Bc80d9fEF");
+        //contractUtil = new ContractUtil(web3j, chainId, "0xAC110c0f70867F77D9d230e377043F52480A0B7d");
+        contractUtil = new ContractUtil(web3j, chainId, "0xD5047b82ACC65c30Eefe4C3cDb652C1Bc80d9fEF"); // for testnet
     }
 
     public String subsidy(String privateKey, BigInteger value, List<BigInteger> mnIDs, List<Address> creators, List<BigInteger> amounts, List<BigInteger> lockDays) throws Exception {
