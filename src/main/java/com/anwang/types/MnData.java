@@ -8,7 +8,6 @@ public class MnData {
     public BigInteger id;
     public Address addr;
     public Address creator;
-    public BigInteger lockID;
     public BigInteger createHeight;
     public BigInteger type;
     public String enode;
@@ -18,11 +17,10 @@ public class MnData {
     public int state;
     public String subsidyTxid;
 
-    public MnData(long id, Address addr, Address creator, BigInteger lockID, BigInteger createHeight) {
+    public MnData(long id, Address addr, Address creator, BigInteger createHeight) {
         this.id = BigInteger.valueOf(id);
         this.addr = addr;
         this.creator = creator;
-        this.lockID = lockID;
         this.createHeight = createHeight;
         this.type = BigInteger.ZERO;
         this.enode = "";
