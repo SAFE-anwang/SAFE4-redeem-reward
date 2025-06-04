@@ -16,19 +16,19 @@ public class MasterNodeSubsidy {
 
     private final ContractUtil contractUtil;
 
+    public final static String contractAddr = "0xAC110c0f70867F77D9d230e377043F52480A0B7d";
+
     public MasterNodeSubsidy(Web3j web3j, long chainId) {
-        //contractUtil = new ContractUtil(web3j, chainId, "0xAC110c0f70867F77D9d230e377043F52480A0B7d");
-        contractUtil = new ContractUtil(web3j, chainId, "0xD5047b82ACC65c30Eefe4C3cDb652C1Bc80d9fEF"); // for testnet
+        contractUtil = new ContractUtil(web3j, chainId, contractAddr);
     }
 
-    public String subsidy(String privateKey, BigInteger value, List<BigInteger> mnIDs, List<Address> creators, List<BigInteger> amounts, List<BigInteger> lockDays) throws Exception {
+    public String subsidy(String privateKey, BigInteger value, List<BigInteger> mnIDs, List<Address> creators, List<BigInteger> amounts) throws Exception {
         Function function = new Function(
                 "subsidy",
                 Arrays.asList(
                         new DynamicArray<>(Uint256.class, Utils.typeMap(mnIDs, Uint256.class)),
                         new DynamicArray<>(Address.class, creators),
-                        new DynamicArray<>(Uint256.class, Utils.typeMap(amounts, Uint256.class)),
-                        new DynamicArray<>(Uint256.class, Utils.typeMap(lockDays, Uint256.class))),
+                        new DynamicArray<>(Uint256.class, Utils.typeMap(amounts, Uint256.class))),
                 Collections.emptyList());
         return contractUtil.call(privateKey, value, function);
     }
