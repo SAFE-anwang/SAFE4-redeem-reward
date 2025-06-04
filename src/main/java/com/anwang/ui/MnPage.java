@@ -152,7 +152,6 @@ public class MnPage extends JPanel {
             return;
         }
 
-        System.out.println("迁移主节点：" + redeemMap.size());
 
         if (!eventSubscription.isDisposed()) {
             eventSubscription.dispose();
@@ -186,7 +185,7 @@ public class MnPage extends JPanel {
             return;
         }
 
-        System.out.println(mnDataMap.size());
+        System.out.println("迁移主节点数量：" + redeemMap.size() + "，期间主节点数量：" + mnDataMap.size());
         calculate();
         tableModel.updateData();
     }
