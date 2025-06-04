@@ -44,6 +44,11 @@ public class CommonUtil {
             return "MNEnodeChanged";
         }
 
+        hash = Hash.sha3String("MNSubsidy(uint256[])");
+        if (topic.equals(hash)) {
+            return "MNSubsidy";
+        }
+
         return "";
     }
 }
