@@ -604,21 +604,11 @@ public class MnPage extends JPanel {
 
     static class ButtonRenderer extends DefaultTableCellRenderer {
         private final JPanel panel;
-        private final JButton confirmButton;
-        private final JButton revokeButton;
-        private final JButton executeButton;
         private final JLabel label;
 
         public ButtonRenderer() {
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
-            confirmButton = new JButton("确认");
-            revokeButton = new JButton("取消");
-            executeButton = new JButton("执行");
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
             label = new JLabel();
-
-            panel.add(confirmButton);
-            panel.add(revokeButton);
-            panel.add(executeButton);
             panel.add(label);
         }
 
@@ -626,25 +616,16 @@ public class MnPage extends JPanel {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             if (value instanceof MnData) {
                 MnData data = (MnData) value;
-                confirmButton.setVisible(false);
-                revokeButton.setVisible(false);
-                executeButton.setVisible(false);
                 label.setVisible(false);
 
                 switch (data.state) {
-                    case 1:
-                        confirmButton.setVisible(true);
-                        revokeButton.setVisible(true);
-                        break;
-                    case 2:
-                        label.setText("已失效");
+                    case 0:
+                        label.setText("未奖励");
                         label.setVisible(true);
                         break;
-                    case 3:
-                        executeButton.setVisible(true);
-                        break;
-                    case 4:
-                        label.setText("已执行");
+                    case 1:
+                        label.setText("已奖励");
+                        label.setForeground(Color.GREEN);
                         label.setVisible(true);
                     default:
                         break;
@@ -656,40 +637,14 @@ public class MnPage extends JPanel {
 
     static class ButtonEditor extends DefaultCellEditor {
         private final JPanel panel;
-        private final JButton confirmButton;
-        private final JButton revokeButton;
-        private final JButton executeButton;
         private final JLabel label;
 
         private MnData currentData;
 
         public ButtonEditor(JCheckBox checkBox) {
             super(checkBox);
-            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
-            confirmButton = new JButton("确认");
-            revokeButton = new JButton("取消");
-            executeButton = new JButton("执行");
+            panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 5));
             label = new JLabel();
-
-            confirmButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            });
-            revokeButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            });
-            executeButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                }
-            });
-
-            panel.add(confirmButton);
-            panel.add(revokeButton);
-            panel.add(executeButton);
             panel.add(label);
         }
 
@@ -697,25 +652,16 @@ public class MnPage extends JPanel {
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
             if (value instanceof MnData) {
                 currentData = (MnData) value;
-                confirmButton.setVisible(false);
-                revokeButton.setVisible(false);
-                executeButton.setVisible(false);
                 label.setVisible(false);
 
                 switch (currentData.state) {
-                    case 1:
-                        confirmButton.setVisible(true);
-                        revokeButton.setVisible(true);
-                        break;
-                    case 2:
-                        label.setText("已失效");
+                    case 0:
+                        label.setText("未奖励");
                         label.setVisible(true);
                         break;
-                    case 3:
-                        executeButton.setVisible(true);
-                        break;
-                    case 4:
-                        label.setText("已执行");
+                    case 1:
+                        label.setText("已奖励");
+                        label.setForeground(Color.GREEN);
                         label.setVisible(true);
                     default:
                         break;
