@@ -16,7 +16,7 @@ public class MasterNodeSubsidy {
 
     private final ContractUtil contractUtil;
 
-    public final static String contractAddr = "0xAC110c0f70867F77D9d230e377043F52480A0B7d";
+    public final static String contractAddr = "0xba922751E3f7F0B0616E950b17665D33fdD18a06";
 
     public MasterNodeSubsidy(Web3j web3j, long chainId) {
         contractUtil = new ContractUtil(web3j, chainId, contractAddr);
