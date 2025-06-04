@@ -129,6 +129,7 @@ public class MnPage extends JPanel {
     boolean isOk = false;
 
     private void subscribeEvent() {
+        paginationPanel.sendButton.setEnabled(false);
         isOk = true;
         mnDataMap.clear();
         totalOnlineHeight = BigInteger.valueOf(0);
@@ -214,9 +215,7 @@ public class MnPage extends JPanel {
                     scheduleReconnect();
                 });
 
-        if (!isOk) {
-            return;
-        }
+        paginationPanel.sendButton.setEnabled(true);
     }
 
     private void scheduleReconnect() {
