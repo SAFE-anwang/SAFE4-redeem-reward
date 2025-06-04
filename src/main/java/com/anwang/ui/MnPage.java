@@ -119,7 +119,7 @@ public class MnPage extends JPanel {
             }, new TypeReference<Utf8String>() {
             }));
 
-    BigInteger endHeight = BigInteger.valueOf(120000);
+    BigInteger endHeight = BigInteger.valueOf(96364); //  2025/05/30 15:00:00
 
     boolean isOk = false;
 
