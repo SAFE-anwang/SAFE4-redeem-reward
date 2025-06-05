@@ -9,7 +9,7 @@ public class App extends JFrame {
     public static App app;
 
     public App() {
-        setTitle("迁移奖励工具 v1.0.1");
+        setTitle("迁移奖励工具 v1.0.2");
         setMinimumSize(new Dimension(1200, 770));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         ImageIcon imageIcon = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/safe.png")));
