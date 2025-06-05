@@ -5,6 +5,7 @@ import com.anwang.ui.App;
 import com.anwang.utils.CommonUtil;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ public class MnDataInfoDialog {
 
         int index = 0;
         components.add(new JLabel("主节点ID："));
-        components.add(new JLabel(data.id.toString()));
+        components.add(new CopyPanel(data.id.toString()));
         panel.addRow(components, index++);
 
         components.clear();
@@ -50,23 +51,25 @@ public class MnDataInfoDialog {
 
         components.clear();
         components.add(new JLabel("奖励金额："));
-        components.add(new JLabel(String.format("%.4f", data.rewardAmount.doubleValue() / CommonUtil.COIN.doubleValue())));
+        components.add(new CopyPanel(String.format("%.4f", data.rewardAmount.doubleValue() / CommonUtil.COIN.doubleValue())));
         panel.addRow(components, index++);
 
         components.clear();
         components.add(new JLabel("奖励状态："));
-        String status;
+        JLabel stateLabel;
         if (data.state == 0) {
-            status = "未奖励";
+            stateLabel = new JLabel("未奖励");
+            stateLabel.setForeground(Color.RED);
         } else {
-            status = "已奖励";
+            stateLabel = new JLabel("已奖励");
+            stateLabel.setForeground(Color.GREEN);
         }
-        components.add(new JLabel(status));
+        components.add(stateLabel);
         panel.addRow(components, index++);
 
         components.clear();
         components.add(new JLabel("奖励交易ID："));
-        components.add(new JLabel(data.subsidyTxid));
+        components.add(new CopyPanel(data.subsidyTxid));
         panel.addRow(components, index++);
 
         JOptionPane.showConfirmDialog(
