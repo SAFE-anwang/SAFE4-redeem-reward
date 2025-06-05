@@ -316,17 +316,24 @@ public class MnPage extends JPanel {
         List<Type> noIndexed = FunctionReturnDecoder.decode(logData, MNSubsidy.getNonIndexedParameters());
         List<BigInteger> mnIDs = ((DynamicArray<Uint256>) noIndexed.get(0)).getValue().stream().map(v -> v.getValue()).collect(Collectors.toList());
         for (BigInteger mnID : mnIDs) {
-            for (int i = 0; i < dataList.size(); i++) {
-                MnData data = dataList.get(i);
-                if (data.id.longValue() == mnID.longValue()) {
-                    data.subsidyTxid = txid;
-                    data.state = 1;
-                    dataList.set(i, data);
-                    tableModel.fireTableDataChanged();
-                    break;
-                }
+            int pos = find(dataList, mnID);
+            if (pos != -1) {
+                MnData data = dataList.get(pos);
+                data.subsidyTxid = txid;
+                data.state = 1;
+                dataList.set(pos, data);
+                tableModel.fireTableDataChanged();
             }
         }
+    }
+
+    private int find(List<MnData> arr, BigInteger mnID) {
+        for (int i = 0; i < arr.size(); i++) {
+            if (arr.get(i).id.longValue() == mnID.longValue()) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     BigInteger totalOnlineHeight = BigInteger.valueOf(0);
@@ -480,7 +487,17 @@ public class MnPage extends JPanel {
                 value = value.add(data.rewardAmount);
             }
             try {
-                ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts);
+                String txid = ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts);
+                for (int k = 0; k < batchNum; k++) {
+                    MnData data = needs.get(i * batchNum + k);
+                    data.state = 1;
+                    data.subsidyTxid = txid;
+                    int pos = find(dataList, data.id);
+                    if (pos != -1) {
+                        dataList.set(pos, data);
+                    }
+                }
+                tableModel.fireTableDataChanged();
             } catch (Exception e) {
                 e.printStackTrace();
                 return;
@@ -501,7 +518,17 @@ public class MnPage extends JPanel {
                 value = value.add(data.rewardAmount);
             }
             try {
-                ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts);
+                String txid = ContractModel.getInstance().getMasterNodeSubsidy().subsidy(StartupPage.privateKey, value, mnIDs, creators, amounts);
+                for (int k = 0; k < temps.size(); k++) {
+                    MnData data = temps.get(k);
+                    data.state = 1;
+                    data.subsidyTxid = txid;
+                    int pos = find(dataList, data.id);
+                    if (pos != -1) {
+                        dataList.set(pos, data);
+                    }
+                }
+                tableModel.fireTableDataChanged();
             } catch (Exception e) {
                 e.printStackTrace();
             }
