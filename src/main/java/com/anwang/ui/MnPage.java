@@ -462,7 +462,7 @@ public class MnPage extends JPanel {
         }
     }
 
-    private void doSubsidy() {
+    private int doSubsidy() {
         List<MnData> needs = new ArrayList<>();
         for (MnData data : dataList) {
             if (data.rewardAmount.compareTo(BigInteger.ZERO) == 0 ||
@@ -470,6 +470,10 @@ public class MnPage extends JPanel {
                 continue;
             }
             needs.add(data);
+        }
+
+        if(needs.isEmpty()) {
+            return 1;
         }
 
         int i = 0;
@@ -500,7 +504,7 @@ public class MnPage extends JPanel {
                 tableModel.fireTableDataChanged();
             } catch (Exception e) {
                 e.printStackTrace();
-                return;
+                return 2;
             }
         }
 
@@ -531,8 +535,11 @@ public class MnPage extends JPanel {
                 tableModel.fireTableDataChanged();
             } catch (Exception e) {
                 e.printStackTrace();
+                return 2;
             }
         }
+
+        return 0;
     }
 
     class FilterPanel extends JPanel {
@@ -618,7 +625,14 @@ public class MnPage extends JPanel {
             sendButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    doSubsidy();
+                    int ret = doSubsidy();
+                    if(ret == 0) {
+                        JOptionPane.showMessageDialog(null, "恭喜，已全部奖励，正在打包交易，请等待确认！！！");
+                    } else if(ret == 1) {
+                        JOptionPane.showMessageDialog(null, "恭喜，当前已没有需要奖励的记录！！！");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "抱歉，有部分主节点奖励失败，检查金额是否充足后等待5分钟再试试！！！");
+                    }
                 }
             });
 
