@@ -319,8 +319,12 @@ public class MnPage extends JPanel {
             int pos = find(dataList, mnID);
             if (pos != -1) {
                 MnData data = dataList.get(pos);
-                data.subsidyTxid = txid;
-                data.state = 1;
+                if (data.subsidyTxid.isEmpty()) {
+                    data.subsidyTxid = txid;
+                } else {
+                    data.subsidyTxid += ("<br>" + txid);
+                }
+                // data.state = 1;
                 dataList.set(pos, data);
                 tableModel.fireTableDataChanged();
             }
@@ -472,7 +476,7 @@ public class MnPage extends JPanel {
             needs.add(data);
         }
 
-        if(needs.isEmpty()) {
+        if (needs.isEmpty()) {
             return 1;
         }
 
@@ -495,7 +499,11 @@ public class MnPage extends JPanel {
                 for (int k = 0; k < batchNum; k++) {
                     MnData data = needs.get(i * batchNum + k);
                     data.state = 1;
-                    data.subsidyTxid = txid;
+                    if (data.subsidyTxid.isEmpty()) {
+                        data.subsidyTxid = txid;
+                    } else {
+                        data.subsidyTxid += ("<br>" + txid);
+                    }
                     int pos = find(dataList, data.id);
                     if (pos != -1) {
                         dataList.set(pos, data);
@@ -526,7 +534,11 @@ public class MnPage extends JPanel {
                 for (int k = 0; k < temps.size(); k++) {
                     MnData data = temps.get(k);
                     data.state = 1;
-                    data.subsidyTxid = txid;
+                    if (data.subsidyTxid.isEmpty()) {
+                        data.subsidyTxid = txid;
+                    } else {
+                        data.subsidyTxid += ("<br>" + txid);
+                    }
                     int pos = find(dataList, data.id);
                     if (pos != -1) {
                         dataList.set(pos, data);
@@ -625,13 +637,15 @@ public class MnPage extends JPanel {
             sendButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    sendButton.setEnabled(false);
                     int ret = doSubsidy();
-                    if(ret == 0) {
+                    if (ret == 0) {
                         JOptionPane.showMessageDialog(null, "恭喜，已全部奖励，正在打包交易，请等待确认！！！");
-                    } else if(ret == 1) {
+                    } else if (ret == 1) {
                         JOptionPane.showMessageDialog(null, "恭喜，当前已没有需要奖励的记录！！！");
                     } else {
                         JOptionPane.showMessageDialog(null, "抱歉，有部分主节点奖励失败，检查金额是否充足后等待5分钟再试试！！！");
+                        sendButton.setEnabled(true);
                     }
                 }
             });
