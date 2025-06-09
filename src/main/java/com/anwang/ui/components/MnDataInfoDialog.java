@@ -31,7 +31,7 @@ public class MnDataInfoDialog {
 
         components.clear();
         components.add(new JLabel("Enode："));
-        components.add(new CopyPanel(data.enode));
+        components.add(new CopyPanel("<html>" + data.enode.substring(0, 80) + "<br>" + data.enode.substring(80) + "</html>"));
         panel.addRow(components, index++);
 
         components.clear();
@@ -69,7 +69,7 @@ public class MnDataInfoDialog {
 
         components.clear();
         components.add(new JLabel("奖励交易ID："));
-        components.add(new CopyPanel(data.subsidyTxid));
+        components.add(new CopyPanel("<html>" + data.subsidyTxid + "</html>"));
         panel.addRow(components, index++);
 
         JOptionPane.showConfirmDialog(

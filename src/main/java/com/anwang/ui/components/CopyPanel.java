@@ -21,12 +21,7 @@ public class CopyPanel extends JPanel {
             copyIcon = new ImageIcon(Objects.requireNonNull(getClass().getClassLoader().getResource("images/copy.png")));
         }
 
-        JLabel textLabel = new JLabel();
-        if(text.length() >= 80) {
-            textLabel.setText("<html>" + text.substring(0, 80) + "<br>" + text.substring(80) + "</html>");
-        } else {
-            textLabel.setText(text);
-        }
+        JLabel textLabel = new JLabel(text);
         JButton copyButton = new JButton(copyIcon);
         copyButton.setBorderPainted(false);
         copyButton.setContentAreaFilled(false);
